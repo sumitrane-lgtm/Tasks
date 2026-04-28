@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#1A1916">
+<meta name="apple-mobile-web-app-title" content="Tasks">
+<title>Tasks</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+:root{
+  --bg:#F0EFE9;--sf:#FAFAF8;--sf2:#E8E6DF;--sf3:#D8D6CE;
+  --bd:rgba(0,0,0,0.08);--bd2:rgba(0,0,0,0.16);
+  --t:#1A1916;--t2:#5C5A54;--t3:#A8A69F;
+  --hot:#B83030;--hot-d:rgba(184,48,48,0.09);
+  --now:#177A62;--now-d:rgba(23,122,98,0.09);
+  --later:#2952B0;--later-d:rgba(41,82,176,0.09);
+  --qu:#6B2EB0;--qu-d:rgba(107,46,176,0.09);
+  --hold:#9A5C0A;--hold-d:rgba(154,92,10,0.09);
+  --win:#166830;--win-d:rgba(22,104,48,0.09);
+  --ui:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'SF Mono','Courier New',monospace;
+  --sh:0 1px 4px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+body.dk{
+  --bg:#0C0E12;--sf:#141720;--sf2:#1C1F2A;--sf3:#242838;
+  --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.14);
+  --t:#E2E4EE;--t2:#727890;--t3:#424660;
+  --hot:#E06060;--hot-d:rgba(224,96,96,0.12);
+  --now:#42C4B0;--now-d:rgba(66,196,176,0.12);
+  --later:#6090F0;--later-d:rgba(96,144,240,0.12);
+  --qu:#B070E8;--qu-d:rgba(176,112,232,0.12);
+  --hold:#E0A040;--hold-d:rgba(224,160,64,0.12);
+  --win:#50C070;--win-d:rgba(80,192,112,0.12);
+  --sh:0 2px 8px rgba(0,0,0,0.4);
+}
+html,body{height:100%;height:100dvh;background:var(--bg);color:var(--t);font-family:var(--ui);overflow:hidden;-webkit-text-size-adjust:100%}
+.scr{display:none;position:fixed;inset:0;flex-direction:column;background:var(--bg);height:100%;height:100dvh}
+.scr.on{display:flex}
+
+/* ══ TITLE BAND ══ */
+.tband{
+  display:flex;align-items:center;
+  padding-top:var(--safe-t);
+  height:calc(52px + var(--safe-t));
+  background:var(--t);color:var(--bg);
+  flex-shrink:0;position:relative;
+}
+.tband-title{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-size:16px;font-weight:900;letter-spacing:.28em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.tband-menu{
+  margin-left:auto;margin-right:12px;
+  width:36px;height:36px;border-radius:8px;
+  background:rgba(255,255,255,0.12);border:none;
+  color:var(--bg);cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+}
+.tband-menu:active{background:rgba(255,255,255,0.22)}
+
+/* ══ PAGE ROW ══ */
+.prow{
+  display:flex;align-items:center;
+  height:40px;padding:0 16px;
+  border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.ptitle{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2)}
+.psp{flex:1}
+
+/* ══ MENU PANEL ══ */
+.menu-panel{cursor:pointer;
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;
+  justify-content:flex-end;
+}
+body.dk .menu-panel{cursor:pointer;background:rgba(0,0,0,0.7)}
+.menu-panel.on{display:flex}
+.menu-sheet{
+  width:min(300px,88vw);background:var(--sf);
+  border-left:1px solid var(--bd);
+  display:flex;flex-direction:column;
+  padding-top:calc(16px + var(--safe-t));
+  padding-bottom:calc(16px + var(--safe-b));
+}
+.menu-item{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;cursor:pointer;
+  font-size:14px;font-weight:600;color:var(--t);
+  border-bottom:1px solid var(--bd);transition:background .1s;
+}
+.menu-item:active{background:var(--sf2)}
+.menu-ico{font-size:18px;width:24px;text-align:center;flex-shrink:0;color:var(--t2)}
+.menu-lbl{flex:1}
+.menu-sub{font-size:11px;color:var(--t3)}
+.menu-toggle{
+  width:44px;height:26px;border-radius:13px;
+  border:2px solid var(--bd2);background:var(--sf3);
+  position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;
+}
+.menu-toggle.on{background:var(--t)}
+.menu-toggle::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--bg);transition:transform .2s;
+}
+.menu-toggle.on::after{transform:translateX(18px)}
+.menu-ver{padding:16px 20px;font-size:11px;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-top:auto}
+
+/* ══ BOTTOM NAV ══ */
+.nav{
+  display:flex;align-items:stretch;gap:5px;
+  padding:7px 10px;padding-bottom:calc(7px + var(--safe-b));
+  border-top:1px solid var(--bd);background:var(--sf);flex-shrink:0;
+}
+.nav-left{display:flex;gap:5px;flex:1}
+.nav-right{display:flex}
+.nb{touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:7px 12px;border-radius:8px;
+  border:1px solid var(--bd);background:transparent;
+  color:var(--t3);cursor:pointer;font-family:var(--ui);
+  font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  white-space:nowrap;min-width:50px;
+}
+.nb:active{background:var(--sf2);color:var(--t)}
+.nb-ico{font-size:16px;line-height:1}
+.nb.pri{touch-action:manipulation;background:var(--t);color:var(--bg);border-color:var(--t);min-width:72px}
+.nb.pri:active{opacity:.82}
+
+/* ══ FILTER ROW ══ */
+.fbar{display:flex;gap:5px;padding:8px 14px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fbar::-webkit-scrollbar{display:none}
+.fb{
+  font-family:var(--ui);font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;
+  padding:6px 12px;border-radius:8px;
+  border:1px solid var(--bd);background:transparent;
+  color:var(--t3);cursor:pointer;white-space:nowrap;flex-shrink:0;
+}
+.fb.on{background:var(--t);color:var(--bg);border-color:var(--t)}
+.psel{
+  font-family:var(--ui);font-size:11px;padding:6px 10px;border-radius:8px;
+  border:1px solid var(--bd);background:var(--sf);color:var(--t2);
+  cursor:pointer;outline:none;flex-shrink:0;margin-left:auto;max-width:130px;
+}
+
+/* ══ HOME ══ */
+.home-body{flex:1;display:flex;flex-direction:column;padding:16px}
+.cbox{
+  flex:1;display:flex;flex-direction:column;
+  background:var(--sf);border-radius:14px;
+  border:1px solid var(--bd);box-shadow:var(--sh);overflow:hidden;
+}
+.cbox:focus-within{border-color:var(--bd2)}
+#cinp{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--t);font-family:var(--mono);font-size:16px;
+  padding:16px;resize:none;line-height:1.6;caret-color:var(--now);
+}
+#cinp::placeholder{color:var(--t3)}
+.cfoot{padding:8px 14px;border-top:1px solid var(--bd);font-family:var(--mono);font-size:11px;color:var(--t3)}
+.cfoot.w{color:var(--hold)}.cfoot.o{color:var(--hot)}
+
+/* ══ BUCKET OVERLAY ══ */
+.bov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.44);z-index:90;flex-direction:column;justify-content:flex-end;cursor:pointer}
+body.dk .bov{background:rgba(0,0,0,0.75)}
+.bov.on{display:flex}
+.bsheet{background:var(--sf);border-radius:20px 20px 0 0;border-top:1px solid var(--bd);overflow:hidden}
+.bprev{padding:16px;font-family:var(--mono);font-size:14px;color:var(--t2);border-bottom:1px solid var(--bd);line-height:1.5;min-height:52px;word-break:break-word}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px}
+.bsafe{height:calc(10px + var(--safe-b));background:var(--sf)}
+.bbtn{display:flex;align-items:center;gap:12px;padding:15px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--sf2);cursor:pointer;width:100%}
+.bbtn:active{background:var(--sf3)}
+.bdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.blbl{font-size:15px;font-weight:700;color:var(--t)}
+.bcnt{font-size:12px;color:var(--t3);font-family:var(--mono);margin-left:auto}
+
+/* ══ SCROLL ══ */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 10px}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ══ SECTION HEADER ══ */
+.shdr{
+  display:flex;align-items:center;gap:8px;padding:12px 0 6px;
+  font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);
+  position:sticky;top:0;background:var(--bg);z-index:2;
+}
+.shdot{width:6px;height:6px;border-radius:50%}
+.shn{font-family:var(--mono);font-size:11px;margin-left:auto}
+
+/* ══ TASK ROW ══ */
+.tr{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 14px;border-radius:12px;
+  border:1px solid var(--bd);background:var(--sf);
+  margin-bottom:6px;cursor:pointer;
+  box-shadow:var(--sh);user-select:none;
+  border-left:4px solid var(--tc,var(--bd));min-height:54px;
+}
+.tr:active{background:var(--sf2)}
+.tr.fly-l{opacity:0;transform:translateX(-50px);transition:all .22s}
+.tr.fly-r{opacity:0;transform:translateX(50px);transition:all .22s}
+.tr-body{flex:1;min-width:0}
+.tr-txt{font-size:15px;color:var(--t);line-height:1.35}
+.tr-txt.xd{text-decoration:line-through;color:var(--t3)}
+.tr-proj{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:3px}
+.pbar{height:3px;border-radius:2px;background:var(--sf3);margin-top:6px;overflow:hidden}
+.pbf{height:100%;border-radius:2px}
+.hbadge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--hold-d);color:var(--hold);flex-shrink:0}
+.pctlbl{font-size:11px;font-family:var(--mono);color:var(--t3);flex-shrink:0}
+.empty{text-align:center;color:var(--t3);font-size:14px;padding:50px 20px;line-height:1.8}
+
+/* ══ VIEW ══ */
+#sview.on{overflow:hidden}
+@media(min-width:641px){
+  .kb{flex:1;display:flex;gap:10px;padding:10px 14px;overflow:hidden;min-height:0}
+  .kb .mob-scroll{display:none}
+  .kcol{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--sf2);border-radius:12px;border:1px solid var(--bd);overflow:hidden}
+  .kchdr{display:flex;align-items:center;gap:7px;padding:10px 12px;flex-shrink:0;border-bottom:1px solid var(--bd)}
+  .kcdot{width:7px;height:7px;border-radius:50%}
+  .kctit{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2)}
+  .kccnt{font-size:10px;font-family:var(--mono);color:var(--t3);margin-left:auto}
+  .kcbody{flex:1;overflow-y:auto;padding:8px}
+  .kcard{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;box-shadow:var(--sh);border-left:3px solid var(--kc,var(--bd))}
+  .kcard:active{opacity:.8}
+  .kctxt{font-size:13px;color:var(--t);line-height:1.3;margin-bottom:4px}
+  .kctxt.xd{text-decoration:line-through;color:var(--t3)}
+  .kcft{display:flex;align-items:center;gap:5px}
+  .kcproj{font-size:10px;color:var(--t3);font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kchld{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--hold-d);color:var(--hold)}
+  .kcpct{font-size:10px;font-family:var(--mono);font-weight:500}
+}
+@media(max-width:640px){
+  .kb{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  .kcol{display:none!important}
+  .kb .mob-scroll{display:block;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 10px}
+  .kb .mob-scroll::-webkit-scrollbar{width:0}
+}
+
+/* ══ DO ══ */
+#sdo.on{overflow:hidden}
+
+/* ══ Q/U ══ */
+#squ.on{overflow:hidden}
+
+/* ══ REPORT ══ */
+#sreport.on{overflow:hidden}
+.rdp{display:flex;align-items:center;gap:8px;padding:8px 14px 0;flex-shrink:0;flex-wrap:wrap}
+.dlsm{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3)}
+.dinput{font-family:var(--mono);font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--t);outline:none}
+.dinput:focus{border-color:var(--bd2)}
+.rbtns{display:flex;align-items:center;gap:6px;padding:8px 14px;flex-shrink:0;border-bottom:1px solid var(--bd);overflow-x:auto}
+.rbtns::-webkit-scrollbar{display:none}
+.rnb{font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--t2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.rnb:active{background:var(--sf2)}
+.rnb.sv{color:var(--now);border-color:var(--now);background:var(--now-d)}
+.rsec{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);padding:12px 0 6px;border-top:1px solid var(--bd);margin-top:4px}
+.rsec:first-child{border-top:none;margin-top:0}
+.ritem{display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--sf);margin-bottom:5px;box-shadow:var(--sh);border-left:3px solid var(--rc,var(--bd))}
+.rdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.rtxt{flex:1;font-size:14px;color:var(--t);line-height:1.3}
+.rtxt.xd{text-decoration:line-through;color:var(--t3)}
+.rmeta{font-size:11px;color:var(--t3);font-family:var(--mono);white-space:nowrap}
+.rnb-area{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:12px;font-size:14px;font-family:var(--mono);color:var(--t);outline:none;resize:none;line-height:1.6;min-height:80px;margin-top:8px;display:block}
+.rnb-area:focus{border-color:var(--bd2)}
+.rnb-area::placeholder{color:var(--t3)}
+
+/* ══ PREV REPORTS ══ */
+.ppanel{display:none;position:fixed;inset:0;background:var(--bg);z-index:70;flex-direction:column}
+.ppanel.on{display:flex}
+.pitem{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--bd);cursor:pointer;min-height:58px}
+.pitem:active{background:var(--sf2)}
+.pitem-lbl{flex:1;font-size:14px;color:var(--t)}
+.pitem-m{font-size:11px;color:var(--t3);font-family:var(--mono)}
+
+/* ══ TASK DETAIL ══ */
+.dtov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.36);z-index:80;flex-direction:column;justify-content:flex-end;cursor:pointer}
+body.dk .dtov{background:rgba(0,0,0,0.76)}
+.dtov.on{display:flex}
+.dtp{background:var(--sf);border-radius:22px 22px 0 0;border-top:1px solid var(--bd);padding-bottom:calc(20px + var(--safe-b));max-height:86vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dhr{display:flex;align-items:center;padding:14px 16px 0;gap:10px}
+.dhand{width:36px;height:4px;border-radius:2px;background:var(--bd2);margin:0 auto}
+.ddel{font-family:var(--ui);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:8px;border:1px solid var(--hot-d);background:var(--hot-d);color:var(--hot);cursor:pointer;flex-shrink:0}
+.ddel:active{background:var(--hot);color:#fff}
+.dtxt{font-size:16px;color:var(--t);line-height:1.5;padding:14px 16px;word-break:break-word;border-bottom:1px solid var(--bd)}
+.drow{padding:12px 16px 0}
+.dlbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.bsel{display:flex;gap:6px;flex-wrap:wrap}
+.bsb{font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.04em;padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--t3);cursor:pointer;transition:all .11s}
+.bsb.s-hot{background:var(--hot-d);border-color:var(--hot);color:var(--hot)}
+.bsb.s-now{background:var(--now-d);border-color:var(--now);color:var(--now)}
+.bsb.s-later{background:var(--later-d);border-color:var(--later);color:var(--later)}
+.bsb.s-qu{background:var(--qu-d);border-color:var(--qu);color:var(--qu)}
+.dselect{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:12px;font-size:14px;font-family:var(--ui);color:var(--t);outline:none;cursor:pointer}
+.dselect:focus{border-color:var(--bd2)}
+
+/* ══ PROGRESS SLIDER ══ */
+.prog-row{display:flex;align-items:center;gap:8px;padding:0 2px}
+.pact-wrap{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0}
+.pact{width:46px;height:46px;border-radius:50%;border:2px solid var(--bd2);background:var(--sf2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:19px;font-weight:700;color:var(--t2);transition:all .12s}
+.pact:active{transform:scale(.9)}
+.pact.hold-btn{border-color:var(--hold);color:var(--hold);background:var(--hold-d)}
+.pact.hold-btn:active{background:var(--hold);color:#fff}
+.pact.done-btn{border-color:var(--win);color:var(--win);background:var(--win-d)}
+.pact.done-btn:active{background:var(--win);color:#fff}
+.pact-lbl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
+.sl-wrap{flex:1;display:flex;flex-direction:column;gap:0;min-width:0}
+.pct-disp{text-align:center;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--t);margin-bottom:12px;letter-spacing:-.01em;transition:color .1s}
+.sl-track{height:8px;border-radius:4px;background:var(--sf3);position:relative;cursor:pointer;touch-action:none;margin-bottom:7px}
+.sl-fill{position:absolute;left:0;top:0;height:100%;border-radius:4px;pointer-events:none;will-change:width;}
+.sl-thumb{position:absolute;top:50%;width:32px;height:32px;border-radius:8px;border:3px solid var(--sf);box-shadow:0 2px 8px rgba(0,0,0,0.2);transform:translate(-50%,-50%);pointer-events:none;will-change:left;}
+.sl-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--t3);padding:0 2px}
+
+/* ══ CTX MENU ══ */
+.ctx{display:none;position:fixed;background:var(--sf);border:1px solid var(--bd2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:100;overflow:hidden;min-width:170px}
+.ctx.on{display:block}
+.ctx-item{display:block;width:100%;padding:15px 18px;font-family:var(--ui);font-size:14px;font-weight:700;text-align:left;border:none;background:transparent;cursor:pointer;color:var(--t2)}
+.ctx-item:active{background:var(--sf2)}
+.ctx-item.h{color:var(--hold)}.ctx-item.c{color:var(--win)}
+.ctx-sep{height:1px;background:var(--bd)}
+
+/* ══ TOAST ══ */
+.toast{display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--t);color:var(--bg);font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.05em;padding:10px 22px;border-radius:22px;z-index:300;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.18)}
+.toast.on{display:block}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══ -->
+<div id="shome" class="scr on">
+  <div class="tband">
+    <span class="tband-title">TASKS</span>
+    <button class="tband-menu" onclick="openMenu()">&#9776;</button>
+  </div>
+  <div class="prow">
+    <span class="ptitle">&#43;&nbsp; Add</span>
+  </div>
+  <div class="home-body">
+    <div class="cbox">
+      <textarea id="cinp" placeholder="what needs doing..." autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true" maxlength="150"></textarea>
+      <div class="cfoot" id="cc">0 / 150</div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nav-left">
+      <button class="nb" onclick="go('do')"><span class="nb-ico">&#9654;</span>Do</button>
+      <button class="nb" onclick="go('view')"><span class="nb-ico">&#9685;</span>View</button>
+    </div>
+    <div class="nav-right">
+      <button class="nb pri" id="rbtn" onclick="openB()"><span class="nb-ico">&#8594;</span>Ready</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW ══ -->
+<div id="sview" class="scr">
+  <div class="tband"><span class="tband-title">TASKS</span><button class="tband-menu" onclick="openMenu()">&#9776;</button></div>
+  <div class="prow"><span class="ptitle">&#9685;&nbsp; View</span><span class="psp"></span></div>
+  <div class="fbar">
+    <button class="fb on" onclick="setVS('open',this)">Open</button>
+    <button class="fb"    onclick="setVS('active',this)">Active</button>
+    <button class="fb"    onclick="setVS('hold',this)">Hold</button>
+    <button class="fb"    onclick="setVS('complete',this)">Complete</button>
+    <select class="psel" id="vproj" onchange="rv()"><option value="">All projects</option></select>
+  </div>
+  <div class="kb">
+    <div class="kcol" id="kc-hot"><div class="kchdr"><div class="kcdot" style="background:var(--hot)"></div><span class="kctit">Hot</span><span class="kccnt" id="kn-hot">0</span></div><div class="kcbody" id="kb-hot"></div></div>
+    <div class="kcol" id="kc-now"><div class="kchdr"><div class="kcdot" style="background:var(--now)"></div><span class="kctit">Today</span><span class="kccnt" id="kn-now">0</span></div><div class="kcbody" id="kb-now"></div></div>
+    <div class="kcol" id="kc-later"><div class="kchdr"><div class="kcdot" style="background:var(--later)"></div><span class="kctit">Later</span><span class="kccnt" id="kn-later">0</span></div><div class="kcbody" id="kb-later"></div></div>
+    <div class="kcol" id="kc-qu"><div class="kchdr"><div class="kcdot" style="background:var(--qu)"></div><span class="kctit">Q/U</span><span class="kccnt" id="kn-qu">0</span></div><div class="kcbody" id="kb-qu"></div></div>
+    <div class="mob-scroll" id="vscroll"></div>
+  </div>
+  <div class="nav">
+    <div class="nav-left">
+      <button class="nb" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+      <button class="nb" onclick="go('do')"><span class="nb-ico">&#9654;</span>Do</button>
+      <button class="nb" onclick="go('qu')"><span class="nb-ico">&#9733;</span>Q/U</button>
+      <button class="nb" onclick="go('report')"><span class="nb-ico">&#9632;</span>Report</button>
+    </div>
+    <div class="nav-right">
+      <button class="nb pri" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DO ══ -->
+<div id="sdo" class="scr">
+  <div class="tband"><span class="tband-title">TASKS</span><button class="tband-menu" onclick="openMenu()">&#9776;</button></div>
+  <div class="prow"><span class="ptitle">&#9654;&nbsp; Do</span></div>
+  <div class="fbar">
+    <button class="fb on" onclick="setDF('open',this)">Open</button>
+    <button class="fb"    onclick="setDF('active',this)">Active</button>
+    <button class="fb"    onclick="setDF('hold',this)">Hold</button>
+    <button class="fb"    onclick="setDF('complete',this)">Complete</button>
+  </div>
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">
+    <div class="scroll" id="dolist"></div>
+  </div>
+  <div class="nav">
+    <div class="nav-left">
+      <button class="nb" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+      <button class="nb" onclick="go('view')"><span class="nb-ico">&#9685;</span>View</button>
+      <button class="nb" onclick="go('qu')"><span class="nb-ico">&#9733;</span>Q/U</button>
+      <button class="nb" onclick="go('report')"><span class="nb-ico">&#9632;</span>Report</button>
+    </div>
+    <div class="nav-right">
+      <button class="nb pri" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Q/U ══ -->
+<div id="squ" class="scr">
+  <div class="tband"><span class="tband-title">TASKS</span><button class="tband-menu" onclick="openMenu()">&#9776;</button></div>
+  <div class="prow"><span class="ptitle">&#9733;&nbsp; Q/U</span><span class="psp"></span><span style="font-family:var(--mono);font-size:11px;color:var(--t3)" id="qmeta"></span></div>
+  <div class="fbar">
+    <button class="fb on" onclick="setQF('open',this)">Pending</button>
+    <button class="fb"    onclick="setQF('done',this)">Discussed</button>
+  </div>
+  <div class="scroll" id="qbody"></div>
+  <div class="nav">
+    <div class="nav-left">
+      <button class="nb" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+      <button class="nb" onclick="go('do')"><span class="nb-ico">&#9654;</span>Do</button>
+      <button class="nb" onclick="go('view')"><span class="nb-ico">&#9685;</span>View</button>
+      <button class="nb" onclick="go('report')"><span class="nb-ico">&#9632;</span>Report</button>
+    </div>
+    <div class="nav-right">
+      <button class="nb pri" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REPORT ══ -->
+<div id="sreport" class="scr">
+  <div class="tband"><span class="tband-title">TASKS</span><button class="tband-menu" onclick="openMenu()">&#9776;</button></div>
+  <div class="prow"><span class="ptitle">&#9632;&nbsp; Report</span></div>
+  <div class="rdp">
+    <span class="dlsm">From</span>
+    <input type="date" class="dinput" id="rfrom" onchange="rreport()">
+    <span class="dlsm">To</span>
+    <input type="date" class="dinput" id="rto" onchange="rreport()">
+  </div>
+  <div class="rbtns">
+    <button class="rnb sv" onclick="saveReport()">&#8595;&nbsp;Save</button>
+    <button class="rnb" onclick="toggleNotes()">&#9998;&nbsp;Notes</button>
+    <button class="rnb" onclick="copyReport()">&#8599;&nbsp;Copy</button>
+    <button class="rnb" onclick="showPrev()" style="margin-left:auto">Previous</button>
+  </div>
+  <div id="nwrap" style="padding:0 14px 8px;display:none;flex-shrink:0">
+    <textarea class="rnb-area" id="rnotes" placeholder="Add notes to this report..."></textarea>
+  </div>
+  <div class="scroll" id="rbody"></div>
+  <div class="nav">
+    <div class="nav-left">
+      <button class="nb" onclick="go('home')"><span class="nb-ico">&#43;</span>Add</button>
+      <button class="nb" onclick="go('do')"><span class="nb-ico">&#9654;</span>Do</button>
+      <button class="nb" onclick="go('view')"><span class="nb-ico">&#9685;</span>View</button>
+      <button class="nb" onclick="go('qu')"><span class="nb-ico">&#9733;</span>Q/U</button>
+    </div>
+    <div class="nav-right">
+      <button class="nb pri" onclick="saveReport()"><span class="nb-ico">&#8595;</span>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MENU PANEL ══ -->
+<div class="menu-panel" id="menu-panel">
+  <div class="menu-sheet">
+    <div class="menu-item" onclick="toggleTheme();updateMenuToggle()">
+      <span class="menu-ico">&#9680;</span>
+      <span class="menu-lbl">Dark mode</span>
+      <div class="menu-toggle" id="dk-toggle"></div>
+    </div>
+    <div style="height:1px;background:var(--bd);margin:4px 0"></div>
+    <div class="menu-item" onclick="exportData();closeMenu()">
+      <span class="menu-ico">&#8595;</span>
+      <span class="menu-lbl">Export tasks</span>
+      <span class="menu-sub">Download JSON</span>
+    </div>
+    <div class="menu-item" onclick="importData();closeMenu()">
+      <span class="menu-ico">&#8593;</span>
+      <span class="menu-lbl">Import tasks</span>
+      <span class="menu-sub">Load JSON backup</span>
+    </div>
+    <div style="height:1px;background:var(--bd);margin:4px 0"></div>
+    <div class="menu-item" onclick="closeMenu();go('report')">
+      <span class="menu-ico">&#9632;</span>
+      <span class="menu-lbl">Reports</span>
+    </div>
+    <input type="file" id="imp-file" accept=".json" style="display:none" onchange="onImport(event)">
+    <div class="menu-ver">Version 7 &nbsp;&#183;&nbsp; FP Tasks</div>
+  </div>
+</div>
+
+<!-- ══ PREV REPORTS ══ -->
+<div class="ppanel" id="ppanel">
+  <div class="tband"><span class="tband-title">TASKS</span></div>
+  <div class="prow"><span class="ptitle">&#9632;&nbsp; Saved Reports</span><span class="psp"></span><button class="nb" style="border:1px solid var(--bd);color:var(--t2);padding:5px 10px;min-width:unset" onclick="hidePrev()">&#8592; Back</button></div>
+  <div class="scroll" id="plist"></div>
+</div>
+<div class="ppanel" id="pview">
+  <div class="tband"><span class="tband-title">TASKS</span></div>
+  <div class="prow"><span class="ptitle" id="pvtitle">Report</span><span class="psp"></span><button class="rnb" onclick="editPrev()" style="margin-right:8px">&#9998;&nbsp;Edit</button><button class="nb" style="border:1px solid var(--bd);color:var(--t2);padding:5px 10px;min-width:unset" onclick="hidePView()">&#8592; Back</button></div>
+  <div class="scroll" id="pvbody"></div>
+</div>
+
+<!-- ══ BUCKET OVERLAY ══ -->
+<div class="bov" id="bov">
+  <div class="bsheet" onclick="event.stopPropagation()">
+    <div id="bprev" class="bprev"></div>
+    <div class="bgrid">
+      <button class="bbtn" onclick="tag('hot')"><div class="bdot" style="background:var(--hot)"></div><div class="blbl">Hot</div><div class="bcnt" id="bc-hot">0</div></button>
+      <button class="bbtn" onclick="tag('now')"><div class="bdot" style="background:var(--now)"></div><div class="blbl">Today</div><div class="bcnt" id="bc-now">0</div></button>
+      <button class="bbtn" onclick="tag('later')"><div class="bdot" style="background:var(--later)"></div><div class="blbl">Later</div><div class="bcnt" id="bc-later">0</div></button>
+      <button class="bbtn" onclick="tag('qu')"><div class="bdot" style="background:var(--qu)"></div><div class="blbl">Q/U</div><div class="bcnt" id="bc-qu">0</div></button>
+      <button class="bbtn" onclick="closeB()" style="grid-column:1/-1"><div class="bdot" style="background:var(--t3)"></div><div class="blbl" style="color:var(--t2)">Back</div></button>
+    </div>
+    <div class="bsafe"></div>
+  </div>
+</div>
+
+<!-- ══ TASK DETAIL ══ -->
+<div class="dtov" id="dtov">
+  <div class="dtp">
+    <div class="dhr">
+      <div class="dhand"></div>
+      <button class="ddel" onclick="delTask()">Delete</button>
+    </div>
+    <div class="dtxt" id="dtxt-el"></div>
+    <div class="drow">
+      <div class="dlbl">Bucket</div>
+      <div class="bsel" id="dbsel"></div>
+    </div>
+    <!-- Q/U Flag — only visible when bucket = qu -->
+    <div class="drow" id="flag-row" style="display:none">
+      <div class="dlbl">Flag</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="flag-sel"></div>
+    </div>
+    <div class="drow">
+      <div class="dlbl">Project</div>
+      <select class="dselect" id="dproj"><option value="">&#8212; no project &#8212;</option></select>
+    </div>
+    <div class="drow">
+      <div class="dlbl">Progress</div>
+      <!-- Large % display above slider -->
+      <div class="pct-disp" id="pct-disp">0%</div>
+      <div class="prog-row">
+        <!-- Hold: round button, equal margin from 0% -->
+        <div class="pact-wrap">
+          <button class="pact" id="hbtn" onclick="setHold()">H</button>
+          <span class="pact-lbl">hold</span>
+        </div>
+        <!-- Slider -->
+        <div class="sl-wrap">
+          <div class="sl-track" id="sltrack">
+            <div class="sl-fill" id="slfill"></div>
+            <div class="sl-thumb" id="slthumb"></div>
+          </div>
+          <div class="sl-labels"><span>0</span><span>50%</span><span>100%</span></div>
+        </div>
+        <!-- Complete: round button, equal margin from 100% -->
+        <div class="pact-wrap">
+          <button class="pact done-btn" onclick="forceComplete()">&#10003;</button>
+          <span class="pact-lbl">complete</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 0;font-size:11px;color:var(--t3);text-align:center;letter-spacing:.04em">tap outside to save</div>
+  </div>
+</div>
+
+<!-- ══ RIGHT-CLICK ══ -->
+<div class="ctx" id="ctx">
+  <button class="ctx-item h" onclick="ctxAct('hold')">Set Hold</button>
+  <div class="ctx-sep"></div>
+  <button class="ctx-item c" onclick="ctxAct('complete')">Mark Complete</button>
+</div>
+
+<div class="toast" id="tst"></div>
+
+<script>
+// Schema v2: {id,v,text≤150,bucket,pct(-1 hold / 0-100),project,created,completed}
+// Department → PROJECT attribute · Delete controls → pre-integration
+const SK='fp_v2',TK='fp_th5',RK='fp_rpts',MAX=150,VER='5';
+const BC={hot:'var(--hot)',now:'var(--now)',later:'var(--later)',qu:'var(--qu)'};
+const BN={hot:'Hot',now:'Today',later:'Later',qu:'Q/U'};
+const BK=['hot','now','later','qu'];
+
+let tasks=[],reports=[],eid=null,vStat='open',doFil='open',qfil='open',pvRid=null,slPct=0;
+
+function isOpen(p){return p!==100;}
+function pCol(p){return p===-1?'var(--hold)':p===100?'var(--win)':p>0?'var(--now)':'var(--t3)';}
+function td(){return new Date().toISOString().split('T')[0];}
+function wkS(o=0){const d=new Date();d.setDate(d.getDate()-d.getDay()-o*7);return d.toISOString().split('T')[0];}
+function wkE(o=0){const d=new Date();d.setDate(d.getDate()-d.getDay()-o*7+6);return d.toISOString().split('T')[0];}
+function inR(dt,f,t){return dt&&dt>=f&&dt<=t;}
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtD(s){if(!s)return'';const p=s.split('-');return p[1]+'/'+p[2];}
+function fmtDL(s){if(!s)return'';return new Date(s+'T12:00:00').toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'});}
+
+// ── THEME ─────────────────────────────────────────────────
+function toggleTheme(){
+  const d=document.body.classList.toggle('dk');
+  try{localStorage.setItem(TK,d?'1':'0');}catch(e){}
+  updateMenuToggle();
+}
+function updateMenuToggle(){
+  const tog=el('dk-toggle');if(!tog)return;
+  tog.classList.toggle('on',document.body.classList.contains('dk'));
+}
+(function(){try{if(localStorage.getItem(TK)==='1')document.body.classList.add('dk');}catch(e){}updateMenuToggle();})();
+
+// ── MENU ──────────────────────────────────────────────────
+function openMenu(){el('menu-panel').classList.add('on');updateMenuToggle();}
+function closeMenu(){el('menu-panel').classList.remove('on');}
+
+// ── STORAGE ───────────────────────────────────────────────
+function load(){
+  try{const s=localStorage.getItem(SK);if(s)tasks=JSON.parse(s).map(mig);}catch(e){tasks=[];}
+  try{const r=localStorage.getItem(RK);if(r)reports=JSON.parse(r);}catch(e){reports=[];}
+  const rf=el('rfrom'),rt=el('rto');
+  if(rf&&!rf.value)rf.value=wkS(0);
+  if(rt&&!rt.value)rt.value=td();
+  ra();
+}
+function mig(t){
+  if(t.pct===undefined)t.pct=t.status==='hold'?-1:t.status==='complete'?100:0;
+  t.v=2;delete t.notes;delete t.status;
+  if(t.project===undefined)t.project='';
+  if(t.flag===undefined)t.flag='';
+  return t;
+}
+function save(){try{localStorage.setItem(SK,JSON.stringify(tasks));}catch(e){}}
+function saveRpts(){try{localStorage.setItem(RK,JSON.stringify(reports));}catch(e){}}
+
+function getExportSeq(){
+  // Sequential export counter — resets never, increments always
+  const EK='fp_export_seq';
+  try{
+    let seq=parseInt(localStorage.getItem(EK)||'0');
+    seq++;
+    localStorage.setItem(EK,seq);
+    return String(seq).padStart(3,'0');
+  }catch(e){return '001';}
+}
+function exportData(){
+  const seq=getExportSeq();
+  const filename='fp-tasks-'+td()+'-'+seq+'.json';
+  const data=JSON.stringify(tasks,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  if(navigator.share&&navigator.canShare){
+    const file=new File([blob],filename,{type:'application/json'});
+    if(navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'FP Tasks Backup',text:filename})
+        .then(()=>toast('&#8595; '+filename))
+        .catch(e=>{if(e.name!=='AbortError')fallbackExport(blob,filename);});
+      return;
+    }
+  }
+  fallbackExport(blob,filename);
+}
+function fallbackExport(blob,filename){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;a.click();
+  toast('&#8595; '+filename);
+}
+function importData(){el('imp-file').click();}
+function onImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{const d=JSON.parse(ev.target.result);if(!Array.isArray(d)){toast('Invalid file');return;}
+      tasks=d.map(mig);save();ra();toast('&#8593; Imported — '+tasks.length+' tasks');}
+    catch(er){toast('Could not read file');}
+    e.target.value='';
+  };r.readAsText(f);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+function go(s){
+  document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
+  const sc=el('s'+s);if(sc)sc.classList.add('on');
+  closeCtx();closeB();closeMenu();
+  if(s==='home')setTimeout(()=>{try{el('cinp').focus();}catch(e){}},60);
+  if(s==='view'){buildVProj();rv();}
+  if(s==='do')rd();
+  if(s==='qu')rqu();
+  if(s==='report')rreport();
+  ra();
+}
+
+// ── CAPTURE ───────────────────────────────────────────────
+const cinp=el('cinp');
+cinp.addEventListener('input',()=>{
+  const n=cinp.value.length;
+  const cc=el('cc');if(cc){cc.textContent=n+' / '+MAX;cc.className='cfoot'+(n>=MAX?' o':n>=120?' w':'');}
+  const rb=el('rbtn');if(rb)rb.classList.toggle('pri',true);
+});
+cinp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.altKey){e.preventDefault();if(cinp.value.trim())openB();}
+});
+function openB(){
+  if(!cinp.value.trim())return;
+  const bp=el('bprev');if(bp)bp.textContent=cinp.value.trim();
+  BK.forEach(b=>{const c=el('bc-'+b);if(c)c.textContent=tasks.filter(t=>t.bucket===b&&isOpen(t.pct)).length;});
+  el('bov').classList.add('on');
+}
+function closeB(){el('bov').classList.remove('on');}
+function tag(b){
+  const txt=cinp.value.trim().slice(0,MAX);if(!txt)return;
+  tasks.unshift({id:Date.now(),v:2,text:txt,bucket:b,pct:0,project:'',created:td(),completed:null});
+  save();closeB();cinp.value='';
+  const cc=el('cc');if(cc)cc.textContent='0 / '+MAX;
+  toast('&#8594; '+BN[b]);
+  setTimeout(()=>go('view'),420);
+}
+
+// ── TASK ROW HTML ─────────────────────────────────────────
+function trHTML(t,col){
+  const hold=t.pct===-1,p=t.pct,c=col||BC[t.bucket];
+  const bar=p>0&&!hold?`<div class="pbar"><div class="pbf" style="width:${p}%;background:${pCol(p)}"></div></div>`:'';
+  const flag=t.flag&&t.bucket==='qu'?`<span style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--qu-d);color:var(--qu);flex-shrink:0">${t.flag}</span>`:'';
+  return `<div class="tr" data-id="${t.id}" onclick="openTask(${t.id})" style="--tc:${c}">
+    <div class="tr-body">
+      <div class="tr-txt${p===100?' xd':''}">${esc(t.text)}</div>
+      ${t.project?`<div class="tr-proj">${esc(t.project)}</div>`:''}${bar}
+    </div>
+    ${hold?'<span class="hbadge">Hold</span>':''}
+    ${flag}
+    ${p>0&&!hold?`<span class="pctlbl">${p}%</span>`:''}
+  </div>`;
+}
+
+// ── VIEW (KANBAN / GROUPED) ───────────────────────────────
+function setVS(s,btn){
+  vStat=s;document.querySelectorAll('#sview .fbar .fb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');rv();
+}
+function buildVProj(){
+  const projs=[...new Set(tasks.map(t=>t.project).filter(Boolean))].sort();
+  const sel=el('vproj');if(!sel)return;const cur=sel.value;
+  sel.innerHTML='<option value="">All projects</option>'+projs.map(p=>`<option value="${esc(p)}"${p===cur?' selected':''}>${esc(p)}</option>`).join('');
+}
+function getVI(b){
+  let t=tasks.filter(x=>x.bucket===b);
+  if(vStat==='open')    t=t.filter(x=>isOpen(x.pct));
+  else if(vStat==='active')  t=t.filter(x=>x.pct>=0&&isOpen(x.pct));
+  else if(vStat==='hold')    t=t.filter(x=>x.pct===-1);
+  else                       t=t.filter(x=>x.pct===100);
+  const sel=el('vproj');const p=sel?sel.value:'';
+  if(p)t=t.filter(x=>x.project===p);
+  return t;
+}
+function rv(){
+  buildVProj();
+  const isMob=window.innerWidth<=640;
+  if(isMob){
+    let h='';
+    BK.forEach(b=>{
+      const items=getVI(b);
+      const total=tasks.filter(x=>x.bucket===b&&isOpen(x.pct)).length;
+      const cn=el('kn-'+b);if(cn)cn.textContent='('+total+')';
+      if(!items.length)return;
+      h+=`<div class="shdr"><div class="shdot" style="background:${BC[b]}"></div>${BN[b]} (${items.length})</div>`;
+      h+=items.map(t=>trHTML(t,BC[b])).join('');
+    });
+    if(!h)h='<div class="empty">Nothing here &#10022;</div>';
+    const vs=el('vscroll');if(vs)vs.innerHTML=h;
+  } else {
+    BK.forEach(b=>{
+      const items=getVI(b);
+      const total=tasks.filter(x=>x.bucket===b&&isOpen(x.pct)).length;
+      const cn=el('kn-'+b);if(cn)cn.textContent='('+items.length+')';
+      const bd=el('kb-'+b);if(!bd)return;
+      if(!items.length){bd.innerHTML='<div style="font-size:12px;color:var(--t3);text-align:center;padding:20px 6px">&#8212;</div>';return;}
+      bd.innerHTML=items.map(t=>{
+        const hold=t.pct===-1,p=t.pct;
+        const bar=p>0&&!hold?`<div class="pbar" style="margin-top:5px"><div class="pbf" style="width:${p}%;background:${pCol(p)}"></div></div>`:'';
+        return `<div class="kcard" data-id="${t.id}" onclick="openTask(${t.id})" style="--kc:${BC[b]}">
+          <div class="kctxt${p===100?' xd':''}">${esc(t.text)}</div>
+          <div class="kcft"><span class="kcproj">${t.project?esc(t.project):''}</span>
+          ${hold?'<span class="kchld">Hold</span>':p>0?`<span class="kcpct" style="color:${pCol(p)}">${p}%</span>`:''}
+          </div>${bar}</div>`;
+      }).join('');
+    });
+  }
+}
+
+// ── DO ────────────────────────────────────────────────────
+function setDF(f,btn){
+  doFil=f;document.querySelectorAll('#sdo .fbar .fb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');rd();
+}
+function rd(){
+  let list;
+  if(doFil==='open')    list=tasks.filter(t=>isOpen(t.pct));
+  else if(doFil==='active')  list=tasks.filter(t=>t.pct>=0&&isOpen(t.pct));
+  else if(doFil==='hold')    list=tasks.filter(t=>t.pct===-1);
+  else list=tasks.filter(t=>t.pct===100);
+  let h='';
+  BK.forEach(b=>{
+    const it=list.filter(t=>t.bucket===b);if(!it.length)return;
+    const total=tasks.filter(t=>t.bucket===b&&isOpen(t.pct)).length;
+    h+=`<div class="shdr"><div class="shdot" style="background:${BC[b]}"></div>${BN[b]} (${total})</div>`;
+    h+=it.map(t=>trHTML(t,BC[b])).join('');
+  });
+  if(!h)h='<div class="empty">Nothing here &#10022;</div>';
+  const dl=el('dolist');if(dl)dl.innerHTML=h;
+}
+
+// ── Q/U ───────────────────────────────────────────────────
+function setQF(f,btn){
+  qfil=f;document.querySelectorAll('#squ .fbar .fb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');rqu();
+}
+function rqu(){
+  const all=tasks.filter(t=>t.bucket==='qu');
+  const open=all.filter(t=>isOpen(t.pct)),done=all.filter(t=>!isOpen(t.pct));
+  const list=qfil==='open'?open:done;
+  const qm=el('qmeta');if(qm)qm.textContent='('+open.length+' pending)';
+  const qb=el('qbody');if(!qb)return;
+  qb.innerHTML=list.length?list.map(t=>trHTML(t,'var(--qu)')).join(''):`<div class="empty">${qfil==='open'?'No pending Q/U &#10022;':'Nothing discussed yet &#10022;'}</div>`;
+}
+
+// ── REPORT ────────────────────────────────────────────────
+function rreport(){
+  const rf=el('rfrom'),rt=el('rto');
+  const f=rf?rf.value:wkS(0),t=rt?rt.value:td();
+  const comp    = tasks.filter(x=>x.pct===100&&inR(x.completed,f,t));
+  const prog    = tasks.filter(x=>x.pct>0&&x.pct<100);
+  const yetStart= tasks.filter(x=>x.pct===0&&isOpen(x.pct)&&x.bucket!=='qu');
+  const hold2   = tasks.filter(x=>x.pct===-1);
+  const quO     = tasks.filter(x=>x.bucket==='qu'&&isOpen(x.pct));
+  const quD     = tasks.filter(x=>x.bucket==='qu'&&!isOpen(x.pct)&&inR(x.completed,f,t));
+
+  function rrow(x,col){return `<div class="ritem" style="--rc:${col}"><div class="rdot" style="background:${col}"></div><div class="rtxt">${esc(x.text)}${x.project?` <span style="color:var(--t3);font-size:11px">&#183; ${esc(x.project)}</span>`:''}</div><div class="rmeta">${x.pct>0&&x.pct<100?x.pct+'%':fmtD(x.completed)}</div></div>`;}
+
+  let h=`<div class="rsec">&#10003; Complete (${comp.length})</div>`;
+  if(comp.length)comp.forEach(x=>{h+=rrow(x,BC[x.bucket]||'var(--win)');});
+  else h+=`<div class="empty" style="padding:8px 0">Nothing completed in range</div>`;
+
+  if(prog.length){h+=`<div class="rsec">&#8635; In progress (${prog.length})</div>`;prog.forEach(x=>{h+=rrow(x,BC[x.bucket]||'var(--now)');});}
+
+  h+=`<div class="rsec">&#9733; Q/U</div>`;
+  if(quO.length){
+    const flagOrder=['urgent','escalation','approval','follow-up','update',''];
+    const sorted=[...quO].sort((a,b)=>flagOrder.indexOf(a.flag||'')-flagOrder.indexOf(b.flag||''));
+    sorted.forEach(x=>{
+      const fb=x.flag?`<span style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--qu-d);color:var(--qu);margin-left:6px">${x.flag}</span>`:'';
+      h+=`<div class="ritem" style="--rc:var(--qu)"><div class="rdot" style="background:var(--qu)"></div><div class="rtxt">${esc(x.text)}${fb}</div></div>`;
+    });
+  }
+  if(quD.length){h+=`<div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px">Discussed</div>`;quD.forEach(x=>{h+=rrow(x,'var(--qu)');});}
+  if(!quO.length&&!quD.length)h+=`<div class="empty" style="padding:8px 0">No Q/U items</div>`;
+
+  if(hold2.length){h+=`<div class="rsec">H On hold (${hold2.length})</div>`;hold2.forEach(x=>{h+=rrow(x,'var(--hold)');});}
+
+  if(yetStart.length){h+=`<div class="rsec">&#9675; Yet to start (${yetStart.length})</div>`;yetStart.forEach(x=>{h+=rrow(x,BC[x.bucket]||'var(--t3)');});}
+
+  const rb=el('rbody');if(rb)rb.innerHTML=h;
+}
+function getRptTxt(){
+  const rf=el('rfrom'),rt=el('rto');
+  const f=rf?rf.value:wkS(0),t=rt?rt.value:td();
+  const comp    = tasks.filter(x=>x.pct===100&&inR(x.completed,f,t));
+  const prog    = tasks.filter(x=>x.pct>0&&x.pct<100);
+  const yetStart= tasks.filter(x=>x.pct===0&&isOpen(x.pct)&&x.bucket!=='qu');
+  const hold2   = tasks.filter(x=>x.pct===-1);
+  const quO     = tasks.filter(x=>x.bucket==='qu'&&isOpen(x.pct));
+  const notes   = el('rnotes')?el('rnotes').value.trim():'';
+  let txt=`STATUS UPDATE — ${fmtDL(f)} to ${fmtDL(t)}\n\nCOMPLETED (${comp.length})\n`;
+  comp.forEach(x=>txt+=`• ${x.text}${x.project?' ['+x.project+']':''}\n`);
+  if(prog.length){txt+=`\nIN PROGRESS\n`;prog.forEach(x=>txt+=`• ${x.text} — ${x.pct}%${x.project?' ['+x.project+']':''}\n`);}
+  if(yetStart.length){txt+=`\nYET TO START\n`;yetStart.forEach(x=>txt+=`• ${x.text}${x.project?' ['+x.project+']':''}\n`);}
+  if(quO.length){txt+=`\nQUERIES / UPDATES\n`;quO.forEach(x=>txt+=`• ${x.text}${x.flag?' ['+x.flag+']':''}\n`);}
+  if(hold2.length){txt+=`\nON HOLD\n`;hold2.forEach(x=>txt+=`• ${x.text}${x.project?' ['+x.project+']':''}\n`);}
+  if(notes)txt+=`\nNOTES\n${notes}`;
+  return txt;
+}
+function saveReport(){
+  const rf=el('rfrom'),rt=el('rto'),notes=el('rnotes')?el('rnotes').value.trim():'';
+  const rpt={id:Date.now(),from:rf?rf.value:'',to:rt?rt.value:'',notes,saved:td(),text:getRptTxt()};
+  reports.unshift(rpt);if(reports.length>50)reports=reports.slice(0,50);
+  saveRpts();toast('&#8595; Report saved');
+}
+function copyReport(){try{navigator.clipboard.writeText(getRptTxt()).then(()=>toast('&#8599; Copied'));}catch(e){toast('Copy manually');}}
+function toggleNotes(){
+  const w=el('nwrap');if(!w)return;
+  const v=w.style.display==='none'||!w.style.display;
+  w.style.display=v?'block':'none';
+  if(v)setTimeout(()=>{try{el('rnotes').focus();}catch(e){}},60);
+}
+function showPrev(){
+  const pl=el('plist');if(!pl)return;
+  pl.innerHTML=reports.length?reports.map(r=>`<div class="pitem" onclick="viewPrev(${r.id})"><div class="pitem-lbl">${fmtDL(r.from)} &#8594; ${fmtDL(r.to)}</div><div class="pitem-m">${fmtD(r.saved)}</div></div>`).join(''):'<div class="empty">No saved reports yet</div>';
+  el('ppanel').classList.add('on');
+}
+function hidePrev(){el('ppanel').classList.remove('on');}
+function viewPrev(id){
+  pvRid=id;const r=reports.find(x=>x.id===id);if(!r)return;
+  const vt=el('pvtitle');if(vt)vt.textContent=fmtDL(r.from)+' → '+fmtDL(r.to);
+  const vb=el('pvbody');
+  if(vb){let h=`<div style="padding:14px;font-family:var(--mono);font-size:13px;white-space:pre-wrap;color:var(--t);line-height:1.7">${esc(r.text)}</div>`;if(r.notes)h+=`<div style="margin:0 14px 14px;background:var(--sf2);border-radius:10px;padding:12px;font-size:14px;color:var(--t2);line-height:1.6">${esc(r.notes)}</div>`;vb.innerHTML=h;}
+  hidePrev();el('pview').classList.add('on');
+}
+function hidePView(){el('pview').classList.remove('on');el('ppanel').classList.add('on');}
+function editPrev(){
+  const r=reports.find(x=>x.id===pvRid);if(!r)return;
+  const rf=el('rfrom'),rt=el('rto'),rn=el('rnotes');
+  if(rf)rf.value=r.from;if(rt)rt.value=r.to;
+  if(rn){rn.value=r.notes||'';el('nwrap').style.display=r.notes?'block':'none';}
+  el('pview').classList.remove('on');
+  go('report');rreport();toast('Loaded for editing');
+}
+
+// ── TASK DETAIL ───────────────────────────────────────────
+function buildProj(cur){
+  const projs=[...new Set(tasks.map(t=>t.project).filter(Boolean))].sort();
+  const sel=el('dproj');if(!sel)return;
+  sel.innerHTML='<option value="">&#8212; no project &#8212;</option>'+projs.map(p=>`<option value="${esc(p)}"${p===cur?' selected':''}>${esc(p)}</option>`).join('');
+}
+function openTask(id){
+  eid=id;const t=tasks.find(x=>x.id===id);if(!t)return;
+  const dt=el('dtxt-el');if(dt)dt.textContent=t.text;
+  buildProj(t.project||'');
+  const db=el('dbsel');
+  if(db)db.innerHTML=BK.map(b=>`<button class="bsb${t.bucket===b?' s-'+b:''}" onclick="setB('${b}')" data-bk="${b}">${BN[b]}</button>`).join('');
+  // Flag row — only for Q/U
+  buildFlagSel(t.bucket, t.flag||'');
+  const displayPct=t.pct===-1?0:Math.max(0,t.pct);
+  slPct=displayPct;
+  updateSlider(displayPct,t.pct===-1);
+  el('dtov').classList.add('on');
+}
+function closeD(){
+  if(eid){const t=tasks.find(x=>x.id===eid);if(t){const dp=el('dproj');if(dp)t.project=dp.value;if(t.pct!==-1)t.pct=slPct;if(slPct===100&&!t.completed)t.completed=td();save();}}
+  el('dtov').classList.remove('on');eid=null;ra();
+}
+function setB(b){
+  document.querySelectorAll('[data-bk]').forEach(btn=>btn.className='bsb'+(btn.dataset.bk===b?' s-'+b:''));
+  if(eid){const t=tasks.find(x=>x.id===eid);if(t)t.bucket=b;}
+  const cur=eid?((tasks.find(x=>x.id===eid)||{}).flag||''):'';
+  buildFlagSel(b,cur);
+}
+const QU_FLAGS=['','urgent','escalation','approval','follow-up','update'];
+const QU_FLAG_LBL={'':'none','urgent':'Urgent','escalation':'Escalation','approval':'Approval','follow-up':'Follow-up','update':'Update'};
+function buildFlagSel(bucket,cur){
+  const row=el('flag-row');if(!row)return;
+  row.style.display=bucket==='qu'?'':'none';
+  if(bucket!=='qu')return;
+  const fs=el('flag-sel');if(!fs)return;
+  fs.innerHTML=QU_FLAGS.map(f=>`<button class="bsb${cur===f?' s-qu':''}" onclick="setFlag('${f}')" data-flag="${f}">${QU_FLAG_LBL[f]}</button>`).join('');
+}
+function setFlag(f){
+  document.querySelectorAll('[data-flag]').forEach(btn=>btn.className='bsb'+(btn.dataset.flag===f?' s-qu':''));
+  if(eid){const t=tasks.find(x=>x.id===eid);if(t)t.flag=f;}
+}
+function setHold(){
+  if(!eid)return;const t=tasks.find(x=>x.id===eid);if(!t)return;
+  t.pct=-1;slPct=-1;updateSlider(0,true);save();ra();toast('Set to Hold');
+}
+function forceComplete(){
+  if(!eid)return;const t=tasks.find(x=>x.id===eid);if(!t)return;
+  t.pct=100;t.completed=td();slPct=100;save();closeD();ra();toast('&#10003; Complete — well done!');
+}
+function delTask(){
+  if(!eid)return;if(!confirm('Delete this task?'))return;
+  tasks=tasks.filter(x=>x.id!==eid);save();closeD();ra();toast('Deleted');
+}
+
+// ── SLIDER ────────────────────────────────────────────────
+function updateSlider(pct,isHold){
+  pct=Math.max(0,Math.min(100,pct));
+  const fill=el('slfill'),thumb=el('slthumb'),hbtn=el('hbtn'),disp=el('pct-disp');
+  const col=isHold?'var(--hold)':pct===100?'var(--win)':pct>0?'var(--now)':'var(--t3)';
+  const pos=pct+'%';
+  if(fill){fill.style.width=pos;fill.style.background=col;}
+  if(thumb){thumb.style.left=pos;thumb.style.background=isHold?'var(--hold)':pct===0?'var(--sf3)':pct===100?'var(--win)':'var(--now)';}
+  if(hbtn){hbtn.className='pact'+(isHold?' hold-btn':'');}
+  if(disp){disp.textContent=isHold?'Hold':pct===100?'Complete ✓':pct+'%';disp.style.color=col;}
+}
+function slFromEvent(e,track){
+  const rect=track.getBoundingClientRect();
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  return Math.max(0,Math.min(100,Math.round(((cx-rect.left)/rect.width)*100)));
+}
+const sltrack=el('sltrack');
+let slDrag=false;
+if(sltrack){
+  function applySlider(raw){
+    // Slider is STRICTLY 0-100. Hold is ONLY via H button, never via slider.
+    const p=Math.max(0,Math.min(100,raw));
+    slPct=p;
+    if(eid){const t=tasks.find(x=>x.id===eid);if(t&&t.pct!==-1)t.pct=p;}
+    // No CSS transition during drag — instant follow
+    const th=el('slthumb'),fi=el('slfill');
+    if(th)th.style.transition='none';
+    if(fi)fi.style.transition='none';
+    updateSlider(p,false);
+  }
+  function finishSlider(){
+    slDrag=false;
+    // Re-enable smooth transition on release
+    const th=el('slthumb'),fi=el('slfill');
+    if(th)th.style.transition='background .2s';
+    if(fi)fi.style.transition='width .2s';
+    if(slPct===100&&eid){
+      const t=tasks.find(x=>x.id===eid);
+      if(t){t.pct=100;t.completed=td();save();closeD();ra();toast('&#10003; Complete &#8212; well done!');}
+    } else {save();}
+  }
+  sltrack.addEventListener('mousedown',e=>{
+    e.preventDefault();slDrag=true;applySlider(slFromEvent(e,sltrack));
+    const mm=ev=>{if(slDrag)applySlider(slFromEvent(ev,sltrack));};
+    const mu=()=>{if(slDrag)finishSlider();document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);};
+    document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
+  });
+  sltrack.addEventListener('touchstart',e=>{e.preventDefault();slDrag=true;applySlider(slFromEvent(e,sltrack));},{passive:false});
+  sltrack.addEventListener('touchmove',e=>{e.preventDefault();if(slDrag)applySlider(slFromEvent(e,sltrack));},{passive:false});
+  sltrack.addEventListener('touchend',()=>{if(slDrag)finishSlider();},{passive:true});
+}
+
+// ── CTX MENU ──────────────────────────────────────────────
+let ctxTaskId=null;
+document.addEventListener('contextmenu',e=>{
+  const tr=e.target.closest('[data-id]');
+  if(tr&&!el('dtov').classList.contains('on')){
+    e.preventDefault();ctxTaskId=parseInt(tr.dataset.id);
+    const m=el('ctx');let x=e.clientX,y=e.clientY;
+    if(x+180>window.innerWidth)x=window.innerWidth-185;
+    if(y+100>window.innerHeight)y=window.innerHeight-105;
+    m.style.left=x+'px';m.style.top=y+'px';m.classList.add('on');
+  }
+});
+document.addEventListener('click',closeCtx);
+function closeCtx(){el('ctx').classList.remove('on');}
+function ctxAct(a){
+  const t=tasks.find(x=>x.id===ctxTaskId);if(!t)return;
+  if(a==='hold')t.pct=-1;
+  if(a==='complete'){t.pct=100;t.completed=td();}
+  save();ra();closeCtx();toast(a==='hold'?'Set to Hold':'&#10003; Complete');
+}
+
+// ── SWIPE ─────────────────────────────────────────────────
+let _tx=0,_ty=0,_se=null;
+document.addEventListener('touchstart',e=>{if(e.target.closest('.sl-track'))return;_tx=e.touches[0].clientX;_ty=e.touches[0].clientY;_se=e.target.closest('.tr[data-id]');},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!_se)return;const dx=e.changedTouches[0].clientX-_tx,dy=Math.abs(e.changedTouches[0].clientY-_ty);
+  if(dy>40){_se=null;return;}const id=parseInt(_se.dataset.id);
+  if(dx<-70){_se.classList.add('fly-l');setTimeout(()=>{const t=tasks.find(x=>x.id===id);if(t)t.pct=-1;save();ra();toast('Set to Hold');},220);}
+  else if(dx>70){_se.classList.add('fly-r');setTimeout(()=>{const t=tasks.find(x=>x.id===id);if(t){t.pct=100;t.completed=td();}save();ra();toast('&#10003; Complete');},220);}
+  _se=null;
+},{passive:true});
+
+// ── GLOBAL ────────────────────────────────────────────────
+function ra(){
+  const scr=document.querySelector('.scr.on');
+  if(scr){const id=scr.id;if(id==='sview'){buildVProj();rv();}if(id==='sdo')rd();if(id==='squ')rqu();if(id==='sreport')rreport();}
+}
+let _tt;
+function toast(m){const t=el('tst');if(!t)return;t.innerHTML=m;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('on'),2200);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeD();closeB();closeCtx();closeMenu();}});
+
+// iOS standalone fix: use event listeners for overlay tap-to-close
+// onclick on divs is unreliable in PWA mode
+function addOverlayClose(id, closeFn){
+  const el2=el(id);if(!el2)return;
+  function handler(e){if(e.target===el2){e.preventDefault();closeFn();}}
+  el2.addEventListener('touchend',handler,{passive:false});
+  el2.addEventListener('click',handler);
+}
+addOverlayClose('bov',   closeB);
+addOverlayClose('dtov',  closeD);
+addOverlayClose('menu-panel', closeMenu);
+window.addEventListener('resize',()=>{const scr=document.querySelector('.scr.on');if(scr&&scr.id==='sview')rv();});
+
+load();
+setTimeout(()=>{try{el('cinp').focus();}catch(e){}},100);
+</script>
+</body>
+</html>
